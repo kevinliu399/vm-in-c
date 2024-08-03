@@ -50,3 +50,16 @@ int peek(Stack *stack) {
     }
     return stack -> items[stack -> top];
 }
+
+void add(Stack *stack) {
+    // we must see if there is at least two values or not
+    if (stack -> top < 1) {
+        return ;
+    }
+
+    int val1 = stack -> items[stack -> top --];
+    int val2 = stack -> items[stack -> top --];
+
+    int res = val1 + val2;
+    stack -> items[++stack -> top] = res;
+}
