@@ -3,6 +3,11 @@
 #include "./utils/stack.h"
 
 typedef enum {
+    A, B, C, D, E, F, IP,
+    NUM_OF_REGISTERS
+} Registers;
+
+typedef enum {
     PSH,
     ADD,
     POP,
@@ -10,35 +15,37 @@ typedef enum {
     HLT,
 } InstructionSet;
 
-typedef enum {
-    A,B,C,D,E,F,
-    NUM_OF_REGISTERS
-} Registers;
-
 const int program[] = {
-    PSH, 5,
-    PSH, 6,
-    ADD,
-    POP,
+    PSH, 10,
+    SET, IP, 0,
     HLT,
 };
 
-Stack stack;
-bool running = true;
-int ip = 0; // Instruction Pointer, serves as the index of the current instruction
-int registers[NUM_OF_REGISTERS]; // enum -> A=0, B=1, ...
+/*
+PSH 10        ;  0 1
+PSH 20        ;  2 3
+SET IP 0      ;  4 5 6
+*/
 
+int registers[NUM_OF_REGISTERS];
+
+#define ip (registers[IP])
+
+bool running = true;
+Stack stack;
 
 int fetch();
 void eval(int instr);
 
 int main() {
     init_stack(&stack, 256);
-    printf("%d\n", registers[A]);
-
+    
+    // Initialize IP to 0
+    ip = 0;
+    
     while (running) {
         eval(fetch());
-        ip ++;
+        ip++;  // This increment might be overwritten by SET instructions
     }
 
     free_stack(&stack);
@@ -66,6 +73,15 @@ void eval(int instr) {
         }
         case ADD: {
             add(&stack);
+            break;
+        }
+        case SET: {
+            Registers reg = program[++ip];
+            int value = program[++ip];
+            registers[reg] = value;
+            if (reg == IP) {
+                ip = value - 1;  // -1 because ip will be incremented after this instruction
+            }
             break;
         }
     }
